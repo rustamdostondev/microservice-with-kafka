@@ -14,11 +14,13 @@
     "test": "jest --config ./test/jest-e2e.json --detectOpenHandles"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.10.3",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/microservices": "^10.3.0",
     "@nestjs/platform-express": "^9.0.0",
     "kafkajs": "^2.2.4",
+    "nodemailer": "^6.9.7",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0"
   },
