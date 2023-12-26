@@ -1,15 +1,12 @@
 import { Controller, HttpStatus } from '@nestjs/common';
-import { TokenService } from './services/token.service';
 import { MessagePattern } from '@nestjs/microservices';
+import { TokenService } from './services/token.service';
 import { ITokenResponse } from './interfaces/token-response.interface';
 
 @Controller('token')
-export class AppController {
+export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
 
-  /**
-   * async createToken
-   */
   @MessagePattern('token_create')
   public async createToken(data: { userId: string }): Promise<ITokenResponse> {
     let result: ITokenResponse;

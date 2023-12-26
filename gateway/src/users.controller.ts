@@ -33,7 +33,10 @@ export class UserController {
       this.userServiceClient.emit('user_create', userRequest),
     );
 
+    console.log(createUserResponse);
+
     return;
+
     if (createUserResponse.status !== HttpStatus.CREATED) {
       throw new HttpException(
         {

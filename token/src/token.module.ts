@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtConfigService } from './services/config/jwt-config.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { TokenController } from './token.controller';
+import { TokenService } from './services/token.service';
+import { JwtConfigService } from './services/config/jwt-config.service';
 import { MongoConfigService } from './services/config/mongo-config.service';
 import { TokenSchema } from './schemas/token.schema';
 
@@ -11,11 +12,9 @@ import { TokenSchema } from './schemas/token.schema';
     JwtModule.registerAsync({
       useClass: JwtConfigService,
     }),
-
     MongooseModule.forRootAsync({
       useClass: MongoConfigService,
     }),
-
     MongooseModule.forFeature([
       {
         name: 'Token',
@@ -23,7 +22,7 @@ import { TokenSchema } from './schemas/token.schema';
       },
     ]),
   ],
-  controllers: [AppController],
-  providers: [],
+  controllers: [TokenController],
+  providers: [TokenService],
 })
-export class AppModule {}
+export class TokenModule {}

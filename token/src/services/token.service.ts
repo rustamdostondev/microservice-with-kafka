@@ -1,19 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { IToken } from 'src/interfaces/token.interface';
+import { Model, Query } from 'mongoose';
+import { IToken } from '../interfaces/token.interface';
 
 @Injectable()
 export class TokenService {
   constructor(
     private readonly jwtService: JwtService,
-    @InjectModel('TOKEN') private readonly tokenModel: Model<IToken>,
+    @InjectModel('Token') private readonly tokenModel: Model<IToken>,
   ) {}
 
-  /**
-   * createToken
-   */
   public createToken(userId: string): Promise<IToken> {
     const token = this.jwtService.sign(
       {
@@ -30,34 +27,36 @@ export class TokenService {
     }).save();
   }
 
-  /**
-   * decodeToken
-   */
-  public async decodeToken(token: string) {
-    const tokenModel = await this.tokenModel.find({ token });
+  public deleteTokenForUserId(userId: string): Query<any, any> {
+    return this.tokenModel.deleteOne({
+      user_id: userId,
+    });
+  }
 
+  public async decodeToken(token: string) {
+    const tokenModel = await this.tokenModel.find({
+      token,
+    });
     let result = null;
 
     if (tokenModel && tokenModel[0]) {
       try {
         const tokenData = this.jwtService.decode(tokenModel[0].token) as {
           exp: number;
-          userId: string;
+          userId: any;
         };
 
         if (!tokenData || tokenData.exp <= Math.floor(+new Date() / 1000)) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           result = null;
         } else {
           result = {
             userId: tokenData.userId,
           };
         }
-      } catch (error) {
+      } catch (e) {
         result = null;
       }
     }
-
     return result;
   }
 }
