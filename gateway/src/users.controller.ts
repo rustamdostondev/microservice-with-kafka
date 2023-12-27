@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  OnModuleInit,
   Post,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
@@ -16,11 +17,17 @@ import { IServiceTokenCreateResponse } from './interfaces/token/service-token-cr
 
 @Controller('users')
 @ApiTags('users')
-export class UserController {
+export class UserController implements OnModuleInit {
   constructor(
     @Inject('TOKEN_SERVICE') private readonly tokenServiceClient: ClientKafka,
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientKafka,
   ) {}
+  onModuleInit() {
+    this.userServiceClient.subscribeToResponseOf('user_create');
+    this.userServiceClient.close();
+    this.tokenServiceClient.subscribeToResponseOf('token_create');
+    this.tokenServiceClient.close();
+  }
 
   @Post()
   @ApiCreatedResponse({
@@ -30,12 +37,8 @@ export class UserController {
     @Body() userRequest: CreateUserDto,
   ): Promise<CreateUserResponseDto> {
     const createUserResponse: IServiceUserCreateResponse = await firstValueFrom(
-      this.userServiceClient.emit('user_create', userRequest),
+      this.userServiceClient.send('user_create', userRequest),
     );
-
-    console.log(createUserResponse);
-
-    return;
 
     if (createUserResponse.status !== HttpStatus.CREATED) {
       throw new HttpException(

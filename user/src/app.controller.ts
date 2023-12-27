@@ -13,9 +13,6 @@ export class AppController {
     @Payload() userParams: IUser,
   ): Promise<IUserCreateResponse> {
     let result: IUserCreateResponse;
-
-    console.log(userParams);
-
     if (userParams) {
       try {
         userParams.is_confirmed = false;
@@ -43,6 +40,7 @@ export class AppController {
         errors: null,
       };
     }
+    console.log(result);
 
     return result;
   }
