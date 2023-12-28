@@ -15,4 +15,12 @@ export class TaskService {
   public async getTaskByUserId(userId: string): Promise<ITask[]> {
     return this.taskModel.find({ user_id: userId }).exec();
   }
+
+  public async removeTaskById(id: string) {
+    return this.taskModel.findOneAndDelete({ _id: id });
+  }
+
+  public async findTaskById(id: string) {
+    return this.taskModel.findById(id);
+  }
 }
