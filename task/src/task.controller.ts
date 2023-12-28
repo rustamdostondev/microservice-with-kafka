@@ -68,17 +68,17 @@ export class TaskController {
   }
 
   @MessagePattern('task_delete_by_id')
-  public async taskDeleteById(
-    id: string,
-    userId: string,
-  ): Promise<ITaskDeleteResponse> {
+  public async taskDeleteById(params: {
+    id: string;
+    userId: string;
+  }): Promise<ITaskDeleteResponse> {
     let result: ITaskDeleteResponse;
 
-    const findTask = await this.taskService.findTaskById(id);
+    const findTask = await this.taskService.findTaskById(params.id);
 
     if (findTask) {
-      if (findTask.user_id === userId) {
-        await this.taskService.removeTaskById(id);
+      if (findTask.user_id === params.userId) {
+        await this.taskService.removeTaskById(params.id);
         result = {
           status: HttpStatus.OK,
           message: 'task_delete_by_id_success',

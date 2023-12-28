@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
   Inject,
+  Param,
   Post,
   Req,
 } from '@nestjs/common';
@@ -17,6 +19,9 @@ import { CreateTaskDto } from './interfaces/task/dto/create-task.dto';
 import { firstValueFrom } from 'rxjs';
 import { GetTasksResponseDto } from './interfaces/task/dto/get-tasks-response.dto';
 import { IServiceTaskSearchByUserIdResponse } from './interfaces/task/service-task-search-by-user-id-response.interface';
+import { DeleteTaskResponseDto } from './interfaces/task/dto/delete-task-response.dto';
+import { TaskIdDto } from './interfaces/task/dto/task-id.dto';
+import { IServiceTaskDeleteResponse } from './interfaces/task/service-task-delete-response.interface';
 
 @Controller('tasks')
 @ApiTags('tasks')
@@ -26,6 +31,7 @@ export class TaskController {
   ) {
     this.taskClientService.subscribeToResponseOf('task_create');
     this.taskClientService.subscribeToResponseOf('task_search_by_user_id');
+    this.taskClientService.subscribeToResponseOf('task_delete_by_id');
     this.taskClientService.close();
   }
 
@@ -90,6 +96,42 @@ export class TaskController {
       data: {
         tasks: tasksResponse.tasks,
       },
+      errors: null,
+    };
+  }
+
+  @Delete(':id')
+  @Authorization(true)
+  @ApiCreatedResponse({
+    type: DeleteTaskResponseDto,
+  })
+  public async deleteTask(
+    @Req() request: IAuthorizedRequest,
+    @Param() params: TaskIdDto,
+  ): Promise<DeleteTaskResponseDto> {
+    const userInfo = request.user;
+
+    const deleteTaskResponse: IServiceTaskDeleteResponse = await firstValueFrom(
+      this.taskClientService.send('task_delete_by_id', {
+        id: params.id,
+        userId: userInfo.id,
+      }),
+    );
+
+    if (deleteTaskResponse.status !== HttpStatus.OK) {
+      throw new HttpException(
+        {
+          message: deleteTaskResponse.message,
+          data: null,
+          errors: deleteTaskResponse.errors,
+        },
+        deleteTaskResponse.status,
+      );
+    }
+
+    return {
+      message: deleteTaskResponse.message,
+      data: null,
       errors: null,
     };
   }
