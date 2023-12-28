@@ -5,6 +5,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './services/guards/authorization.guard';
+import { TaskController } from './task.controller';
 
 @Module({
   imports: [
@@ -41,9 +42,25 @@ import { AuthGuard } from './services/guards/authorization.guard';
           },
         },
       },
+      {
+        name: 'TASK_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'task',
+            brokers: ['localhost:9092'],
+          },
+          consumer: {
+            groupId: 'task-consumer',
+          },
+          producer: {
+            createPartitioner: Partitioners.LegacyPartitioner,
+          },
+        },
+      },
     ]),
   ],
-  controllers: [UserController],
+  controllers: [UserController, TaskController],
   providers: [
     ConfigService,
     {
