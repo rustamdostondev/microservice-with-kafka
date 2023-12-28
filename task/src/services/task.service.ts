@@ -7,11 +7,12 @@ import { ITask } from 'src/interfaces/task.interface';
 export class TaskService {
   constructor(@InjectModel('Task') private readonly taskModel: Model<ITask>) {}
 
-  /**
-   * createTask
-   */
   public async createTask(taskBody: ITask): Promise<ITask> {
     const taskModel = new this.taskModel(taskBody);
     return await taskModel.save();
+  }
+
+  public async getTaskByUserId(userId: string): Promise<ITask[]> {
+    return this.taskModel.find({ user_id: userId }).exec();
   }
 }
