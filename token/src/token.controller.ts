@@ -3,6 +3,7 @@ import { MessagePattern } from '@nestjs/microservices';
 import { TokenService } from './services/token.service';
 import { ITokenResponse } from './interfaces/token-response.interface';
 import { ITokenDataResponse } from './interfaces/token-data-response.interface';
+import { ITokenDestroyResponse } from './interfaces/token-destroy-response.interface';
 
 @Controller('token')
 export class TokenController {
@@ -46,6 +47,21 @@ export class TokenController {
       status: tokenData ? HttpStatus.OK : HttpStatus.UNAUTHORIZED,
       message: tokenData ? 'token_decode_success' : 'token_decode_unauthorized',
       data: tokenData,
+    };
+  }
+
+  @MessagePattern('token_destroy')
+  public async destroyToken(data: {
+    userId: string;
+  }): Promise<ITokenDestroyResponse> {
+    return {
+      status: data && data.userId ? HttpStatus.OK : HttpStatus.BAD_REQUEST,
+      message:
+        data && data.userId
+          ? (await this.tokenService.deleteTokenForUserId(data.userId)) &&
+            'token_destroy_success'
+          : 'token_destroy_bad_request',
+      errors: null,
     };
   }
 }

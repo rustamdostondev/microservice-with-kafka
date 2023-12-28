@@ -22,6 +22,8 @@ import { Authorization } from './decorators/authorization.decorator';
 import { LoginUserResponseDto } from './interfaces/user/dto/login-user-response.dto';
 import { LoginUserDto } from './interfaces/user/dto/login-user.dto';
 import { IServiceUserSearchResponse } from './interfaces/user/dto/service-user-search-response.interface';
+import { LogoutUserResponseDto } from './interfaces/user/dto/logout-user-response.dto';
+import { IServiceTokenDestroyResponse } from './interfaces/token/service-token-destroy-response.interface';
 
 @Controller('users')
 @ApiTags('users')
@@ -31,11 +33,12 @@ export class UserController {
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientKafka,
   ) {
     this.userServiceClient.subscribeToResponseOf('user_create');
-    this.userServiceClient.close();
-    this.tokenServiceClient.subscribeToResponseOf('token_create');
-    this.tokenServiceClient.close();
     this.userServiceClient.subscribeToResponseOf('user_search_by_credentials');
     this.userServiceClient.close();
+
+    this.tokenServiceClient.subscribeToResponseOf('token_create');
+    this.tokenServiceClient.subscribeToResponseOf('token_destroy');
+    this.tokenServiceClient.close();
   }
 
   @Post()
@@ -134,6 +137,41 @@ export class UserController {
       data: {
         token: createTokenResponse.token,
       },
+      errors: null,
+    };
+  }
+
+  @Post('/logout')
+  @Authorization(true)
+  @ApiCreatedResponse({
+    type: LogoutUserResponseDto,
+  })
+  public async logoutUser(
+    @Req() request: IAuthorizedRequest,
+  ): Promise<LogoutUserResponseDto> {
+    const userInfo = request.user;
+
+    const destroyTokenResponse: IServiceTokenDestroyResponse =
+      await firstValueFrom(
+        this.tokenServiceClient.send('token_destroy', {
+          userId: userInfo.id,
+        }),
+      );
+
+    if (destroyTokenResponse.status !== HttpStatus.OK) {
+      throw new HttpException(
+        {
+          message: destroyTokenResponse.message,
+          data: null,
+          errors: destroyTokenResponse.errors,
+        },
+        destroyTokenResponse.status,
+      );
+    }
+
+    return {
+      message: destroyTokenResponse.message,
+      data: null,
       errors: null,
     };
   }
