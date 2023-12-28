@@ -76,4 +76,47 @@ export class AppController {
 
     return result;
   }
+
+  @MessagePattern('user_search_by_credentials')
+  public async searchUserByCredentials(searchParams: {
+    email: string;
+    password: string;
+  }): Promise<IUserSearchResponse> {
+    let result: IUserSearchResponse;
+    if (searchParams.email && searchParams.password) {
+      const user = await this.userService.searchUser({
+        email: searchParams.email,
+      });
+
+      if (user && user[0]) {
+        if (await user[0].compareEncryptedPassword(searchParams.password)) {
+          result = {
+            status: HttpStatus.OK,
+            message: 'user_search_by_credentials_success',
+            user: user[0],
+          };
+        } else {
+          result = {
+            status: HttpStatus.NOT_FOUND,
+            message: 'user_search_by_credentials_not_match',
+            user: null,
+          };
+        }
+      } else {
+        result = {
+          status: HttpStatus.NOT_FOUND,
+          message: 'user_search_by_credentials_not_found',
+          user: null,
+        };
+      }
+    } else {
+      result = {
+        status: HttpStatus.NOT_FOUND,
+        message: 'user_search_by_credentials_not_found',
+        user: null,
+      };
+    }
+
+    return result;
+  }
 }

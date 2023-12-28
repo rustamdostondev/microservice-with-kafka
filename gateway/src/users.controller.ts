@@ -19,6 +19,9 @@ import { GetUserByTokenResponseDto } from './interfaces/user/dto/get-user-by-tok
 import { IAuthorizedRequest } from './common/authorized-request.interface';
 import { IServiceUserGetByIdResponse } from './interfaces/user/service-user-get-by-id-response.interface';
 import { Authorization } from './decorators/authorization.decorator';
+import { LoginUserResponseDto } from './interfaces/user/dto/login-user-response.dto';
+import { LoginUserDto } from './interfaces/user/dto/login-user.dto';
+import { IServiceUserSearchResponse } from './interfaces/user/dto/service-user-search-response.interface';
 
 @Controller('users')
 @ApiTags('users')
@@ -31,6 +34,8 @@ export class UserController {
     this.userServiceClient.close();
     this.tokenServiceClient.subscribeToResponseOf('token_create');
     this.tokenServiceClient.close();
+    this.userServiceClient.subscribeToResponseOf('user_search_by_credentials');
+    this.userServiceClient.close();
   }
 
   @Post()
@@ -90,6 +95,44 @@ export class UserController {
       message: userResponse.message,
       data: {
         user: userResponse.user,
+      },
+      errors: null,
+    };
+  }
+
+  @Post('/login')
+  @ApiCreatedResponse({
+    type: LoginUserResponseDto,
+  })
+  public async loginUser(
+    @Body() loginRequest: LoginUserDto,
+  ): Promise<LoginUserResponseDto> {
+    const getUserResponse: IServiceUserSearchResponse = await firstValueFrom(
+      this.userServiceClient.send('user_search_by_credentials', loginRequest),
+    );
+
+    if (getUserResponse.status !== HttpStatus.OK) {
+      throw new HttpException(
+        {
+          message: getUserResponse.message,
+          data: null,
+          error: null,
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const createTokenResponse: IServiceTokenCreateResponse =
+      await firstValueFrom(
+        this.tokenServiceClient.send('token_create', {
+          userId: getUserResponse?.user?.id,
+        }),
+      );
+
+    return {
+      message: createTokenResponse.message,
+      data: {
+        token: createTokenResponse.token,
       },
       errors: null,
     };
