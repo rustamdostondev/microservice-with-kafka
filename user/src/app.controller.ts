@@ -3,6 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { IUser } from './interfaces/user.interfaces';
 import { IUserCreateResponse } from './interfaces/user-create-response.interface';
 import { UserService } from './services/user.service';
+import { IUserSearchResponse } from './interfaces/user-search-response.interface';
 
 @Controller()
 export class AppController {
@@ -17,6 +18,7 @@ export class AppController {
       try {
         userParams.is_confirmed = false;
         const createdUser = await this.userService.createUser(userParams);
+        await this.userService.createUserLink(createdUser.id);
         delete createdUser.password;
         result = {
           status: HttpStatus.CREATED,
@@ -41,6 +43,36 @@ export class AppController {
       };
     }
     console.log(result);
+
+    return result;
+  }
+
+  @MessagePattern('user_get_by_id')
+  public async getUserById(id: string): Promise<IUserSearchResponse> {
+    let result: IUserSearchResponse;
+
+    if (id) {
+      const user = await this.userService.searchUserById(id);
+      if (user) {
+        result = {
+          status: HttpStatus.OK,
+          message: 'user_get_by_id_success',
+          user,
+        };
+      } else {
+        result = {
+          status: HttpStatus.NOT_FOUND,
+          message: 'user_get_by_id_not_found',
+          user: null,
+        };
+      }
+    } else {
+      result = {
+        status: HttpStatus.BAD_REQUEST,
+        message: 'user_get_by_id_bad_request',
+        user: null,
+      };
+    }
 
     return result;
   }

@@ -26,4 +26,8 @@ export class UserService {
   public async getUserLink(link: string): Promise<IUserLink[]> {
     return this.userLinkModel.find({ link, is_used: false }).exec();
   }
+
+  public async searchUserById(id: string): Promise<IUser> {
+    return this.userModel.findById(id).exec();
+  }
 }

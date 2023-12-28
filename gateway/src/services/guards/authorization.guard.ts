@@ -7,15 +7,18 @@ import {
 } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';
 import { Reflector } from '@nestjs/core';
-import { ClientProxy } from '@nestjs/microservices';
+import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    @Inject('TOKEN_SERVICE') private readonly tokenServiceClient: ClientProxy,
-    @Inject('USER_SERVICE') private readonly userServiceClient: ClientProxy,
-  ) {}
+    @Inject('TOKEN_SERVICE') private readonly tokenServiceClient: ClientKafka,
+    @Inject('USER_SERVICE') private readonly userServiceClient: ClientKafka,
+  ) {
+    this.tokenServiceClient.subscribeToResponseOf('token_decode');
+    this.userServiceClient.subscribeToResponseOf('user_get_by_id');
+  }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
     const secured = this.reflector.get<string[]>(

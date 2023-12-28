@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { UserController } from './users.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Partitioners } from 'kafkajs';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from './services/guards/authorization.guard';
 
 @Module({
   imports: [
@@ -44,14 +46,10 @@ import { Partitioners } from 'kafkajs';
   controllers: [UserController],
   providers: [
     ConfigService,
-    // {
-    //   provide: 'TOKEN_SERVICE',
-    //   useFactory: (configService: ConfigService) => {
-    //     const tokenServiceOptions = configService.get('tokenService');
-    //     return ClientProxyFactory.create(tokenServiceOptions);
-    //   },
-    //   inject: [ConfigService],
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
 })
 export class AppModule {}
