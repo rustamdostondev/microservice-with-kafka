@@ -16,6 +16,22 @@ export class UserService {
     return await userModel.save();
   }
 
+  public async searchUserById(id: string): Promise<IUser> {
+    return this.userModel.findById(id).exec();
+  }
+
+  public async searchUser(params: { email: string }): Promise<IUser[]> {
+    return this.userModel.find(params).exec();
+  }
+
+  public async updateUserById(
+    id: string,
+    userParams: { is_confirmed: boolean },
+  ): Promise<IUser> {
+    return this.userModel.findByIdAndUpdate({ _id: id }, userParams).exec();
+  }
+
+  // link service
   public async createUserLink(id: string): Promise<IUserLink> {
     const userLinkModel = new this.userLinkModel({
       user_id: id,
@@ -27,11 +43,10 @@ export class UserService {
     return this.userLinkModel.find({ link, is_used: false }).exec();
   }
 
-  public async searchUserById(id: string): Promise<IUser> {
-    return this.userModel.findById(id).exec();
-  }
-
-  public async searchUser(params: { email: string }): Promise<IUser[]> {
-    return this.userModel.find(params).exec();
+  public async updateUserLinkById(
+    id: string,
+    linkParams: { is_used: boolean },
+  ): Promise<IUserLink> {
+    return this.userLinkModel.findByIdAndUpdate({ _id: id }, linkParams);
   }
 }

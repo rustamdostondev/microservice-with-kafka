@@ -4,6 +4,7 @@ import { IUser } from './interfaces/user.interfaces';
 import { IUserCreateResponse } from './interfaces/user-create-response.interface';
 import { UserService } from './services/user.service';
 import { IUserSearchResponse } from './interfaces/user-search-response.interface';
+import { IUserConfirmResponse } from './interfaces/user-confirm-response.interface';
 
 @Controller()
 export class AppController {
@@ -114,6 +115,44 @@ export class AppController {
         status: HttpStatus.NOT_FOUND,
         message: 'user_search_by_credentials_not_found',
         user: null,
+      };
+    }
+
+    return result;
+  }
+
+  @MessagePattern('user_confirm')
+  public async confirmUser(confirmParams: {
+    link: string;
+  }): Promise<IUserConfirmResponse> {
+    let result: IUserConfirmResponse;
+    if (confirmParams) {
+      const userLink = await this.userService.getUserLink(confirmParams.link);
+
+      if (userLink && userLink[0]) {
+        const userId = userLink[0].user_id;
+        await this.userService.updateUserById(userId, { is_confirmed: true });
+        await this.userService.updateUserLinkById(userLink[0].id, {
+          is_used: true,
+        });
+
+        result = {
+          status: HttpStatus.OK,
+          message: 'user_confirm_success',
+          errors: null,
+        };
+      } else {
+        result = {
+          status: HttpStatus.NOT_FOUND,
+          message: 'user_confirm_not_found',
+          errors: null,
+        };
+      }
+    } else {
+      result = {
+        status: HttpStatus.BAD_REQUEST,
+        message: 'user_confirm_bad_request',
+        errors: null,
       };
     }
 

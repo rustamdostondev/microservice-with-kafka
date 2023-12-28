@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  Param,
   Post,
   Req,
 } from '@nestjs/common';
@@ -24,6 +25,9 @@ import { LoginUserDto } from './interfaces/user/dto/login-user.dto';
 import { IServiceUserSearchResponse } from './interfaces/user/dto/service-user-search-response.interface';
 import { LogoutUserResponseDto } from './interfaces/user/dto/logout-user-response.dto';
 import { IServiceTokenDestroyResponse } from './interfaces/token/service-token-destroy-response.interface';
+import { ConfirmUserResponseDto } from './interfaces/user/dto/confirm-user-response.dto';
+import { ConfirmUserDto } from './interfaces/user/dto/confirm-user.dto';
+import { IServiceUserConfirmResponse } from './interfaces/user/service-user-confirm-response.interface';
 
 @Controller('users')
 @ApiTags('users')
@@ -32,10 +36,13 @@ export class UserController {
     @Inject('TOKEN_SERVICE') private readonly tokenServiceClient: ClientKafka,
     @Inject('USER_SERVICE') private readonly userServiceClient: ClientKafka,
   ) {
+    // user topic list
     this.userServiceClient.subscribeToResponseOf('user_create');
     this.userServiceClient.subscribeToResponseOf('user_search_by_credentials');
+    this.userServiceClient.subscribeToResponseOf('user_confirm');
     this.userServiceClient.close();
 
+    // token topic list
     this.tokenServiceClient.subscribeToResponseOf('token_create');
     this.tokenServiceClient.subscribeToResponseOf('token_destroy');
     this.tokenServiceClient.close();
@@ -173,6 +180,37 @@ export class UserController {
       message: destroyTokenResponse.message,
       data: null,
       errors: null,
+    };
+  }
+
+  @Get('/confirm/:link')
+  @ApiCreatedResponse({
+    type: ConfirmUserResponseDto,
+  })
+  public async confirmUser(
+    @Param() params: ConfirmUserDto,
+  ): Promise<ConfirmUserResponseDto> {
+    const confirmUserResponse: IServiceUserConfirmResponse =
+      await firstValueFrom(
+        this.userServiceClient.send('user_confirm', {
+          link: params.link,
+        }),
+      );
+
+    if (confirmUserResponse.status !== HttpStatus.OK) {
+      throw new HttpException(
+        {
+          message: confirmUserResponse.message,
+          data: null,
+          errors: confirmUserResponse.errors,
+        },
+        confirmUserResponse.status,
+      );
+    }
+    return {
+      message: confirmUserResponse.message,
+      errors: null,
+      data: null,
     };
   }
 }
