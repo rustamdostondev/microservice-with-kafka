@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Inject,
@@ -8,12 +9,14 @@ import {
   Req,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Authorization } from './decorators/authorization.decorator';
 import { IAuthorizedRequest } from './common/authorized-request.interface';
 import { CreateTaskResponseDto } from './interfaces/task/dto/create-task-response.dto';
 import { CreateTaskDto } from './interfaces/task/dto/create-task.dto';
 import { firstValueFrom } from 'rxjs';
+import { GetTasksResponseDto } from './interfaces/task/dto/get-tasks-response.dto';
+import { IServiceTaskSearchByUserIdResponse } from './interfaces/task/service-task-search-by-user-id-response.interface';
 
 @Controller('tasks')
 @ApiTags('tasks')
@@ -22,6 +25,7 @@ export class TaskController {
     @Inject('TASK_SERVICE') private readonly taskClientService: ClientKafka,
   ) {
     this.taskClientService.subscribeToResponseOf('task_create');
+    this.taskClientService.subscribeToResponseOf('task_search_by_user_id');
     this.taskClientService.close();
   }
 
@@ -60,6 +64,31 @@ export class TaskController {
       message: createTaskResponse.message,
       data: {
         task: createTaskResponse.task,
+      },
+      errors: null,
+    };
+  }
+
+  @Get()
+  @Authorization(true)
+  @ApiOkResponse({
+    type: GetTasksResponseDto,
+    description: 'List of tasks for signed in user',
+  })
+  public async getTasks(
+    @Req() request: IAuthorizedRequest,
+  ): Promise<GetTasksResponseDto> {
+    const userInfo = request.user;
+
+    const tasksResponse: IServiceTaskSearchByUserIdResponse =
+      await firstValueFrom(
+        this.taskClientService.send('task_search_by_user_id', userInfo.id),
+      );
+
+    return {
+      message: tasksResponse.message,
+      data: {
+        tasks: tasksResponse.tasks,
       },
       errors: null,
     };
