@@ -1,9 +1,9 @@
 import { Controller, HttpStatus } from '@nestjs/common';
 import { ConfirmedStrategyService } from './services/confirmed-strategy.service';
 import { MessagePattern } from '@nestjs/microservices';
-import { IUser } from 'interfaces/user.interface';
-import { IPermissionCheckResponse } from 'interfaces/permission-check-response.interface';
-import { permissions } from 'constants/permissions';
+import { IUser } from 'src/interfaces/user.interface';
+import { permissions } from './constants/permissions';
+import { IPermissionCheckResponse } from './interfaces/permission-check-response.interface';
 
 @Controller()
 export class PermissionController {
@@ -15,6 +15,7 @@ export class PermissionController {
     permission: string;
   }): Promise<IPermissionCheckResponse> {
     let result: IPermissionCheckResponse;
+
     if (!params || !params.user) {
       result = {
         status: HttpStatus.BAD_REQUEST,

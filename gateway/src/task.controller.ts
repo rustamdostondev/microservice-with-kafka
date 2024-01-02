@@ -26,6 +26,7 @@ import { IServiceTaskDeleteResponse } from './interfaces/task/service-task-delet
 import { UpdateTaskResponseDto } from './interfaces/task/dto/update-task-response.dto';
 import { UpdateTaskDto } from './interfaces/task/dto/update-task.dto';
 import { IServiceTaskUpdateByIdResponse } from './interfaces/task/service-task-update-by-id-response.interface';
+import { Permission } from './decorators/permission.decorator';
 
 @Controller('tasks')
 @ApiTags('tasks')
@@ -42,6 +43,7 @@ export class TaskController {
 
   @Post()
   @Authorization(true)
+  @Permission('task_create')
   @ApiCreatedResponse({
     type: CreateTaskResponseDto,
   })

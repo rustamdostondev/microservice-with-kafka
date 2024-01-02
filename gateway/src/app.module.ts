@@ -6,6 +6,7 @@ import { Partitioners } from 'kafkajs';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './services/guards/authorization.guard';
 import { TaskController } from './task.controller';
+import { PermissionGuard } from './services/guards/permission.guard';
 
 @Module({
   imports: [
@@ -58,6 +59,22 @@ import { TaskController } from './task.controller';
           },
         },
       },
+      {
+        name: 'PERMISSION_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'permission',
+            brokers: ['localhost:9092'],
+          },
+          consumer: {
+            groupId: 'permission-consumer',
+          },
+          producer: {
+            createPartitioner: Partitioners.LegacyPartitioner,
+          },
+        },
+      },
     ]),
   ],
   controllers: [UserController, TaskController],
@@ -66,6 +83,10 @@ import { TaskController } from './task.controller';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
     },
   ],
 })
