@@ -51,9 +51,6 @@ export class TaskController {
     userId: string,
   ): Promise<ITaskSearchByUserResponse> {
     let result: ITaskSearchByUserResponse;
-    console.log(userId);
-
-    return;
     if (userId) {
       const tasks = await this.taskService.getTaskByUserId(userId);
       result = {
