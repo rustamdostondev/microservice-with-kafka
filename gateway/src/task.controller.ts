@@ -84,6 +84,7 @@ export class TaskController {
 
   @Get()
   @Authorization(true)
+  @Permission('task_search_by_user_id')
   @ApiOkResponse({
     type: GetTasksResponseDto,
     description: 'List of tasks for signed in user',
@@ -109,6 +110,7 @@ export class TaskController {
 
   @Delete(':id')
   @Authorization(true)
+  @Permission('task_delete_by_id')
   @ApiCreatedResponse({
     type: DeleteTaskResponseDto,
   })
@@ -145,6 +147,10 @@ export class TaskController {
 
   @Put(':id')
   @Authorization(true)
+  @Permission('task_update_by_id')
+  @ApiOkResponse({
+    type: UpdateTaskResponseDto,
+  })
   public async updateTask(
     @Req() request: IAuthorizedRequest,
     @Param() params: TaskIdDto,

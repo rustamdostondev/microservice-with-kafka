@@ -11,12 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import {
-  ApiCreatedResponse,
-  ApiOkResponse,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserResponseDto } from './interfaces/user/dto/create-user-response.dto';
 import { CreateUserDto } from './interfaces/user/dto/create-user.dto';
 import { IServiceUserCreateResponse } from './interfaces/user/service-user-create-response.interface';
@@ -156,8 +151,7 @@ export class UserController {
 
   @Post('/logout')
   @Authorization(true)
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: LogoutUserResponseDto,
   })
   @HttpCode(200)

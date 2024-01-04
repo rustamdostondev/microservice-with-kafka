@@ -61,8 +61,41 @@ describe('Tasks (e2e)', () => {
   it('should not create task with invalid token', () => {
     return request(app.getHttpServer())
       .post('/tasks')
-      .set('Authorization', userToken + 1)
+      .set('authorization', userToken + 1)
       .send(taskCreateRequestSuccess)
+      .expect(401)
+      .expect({
+        message: 'token_decode_unauthorized',
+        data: null,
+        errors: null,
+      });
+  });
+
+  it('/tasks (POST) - should not create task for unconfirmed user with valid token', () => {
+    return request(app.getHttpServer())
+      .post('/tasks')
+      .set('authorization', userToken)
+      .send(taskCreateRequestSuccess)
+      .expect(403)
+      .expect({
+        message: 'permission_check_forbidden',
+        data: null,
+        errors: null,
+      });
+  });
+
+  it('/tasks (GET) - should not retrieve tasks without a valid token', () => {
+    return request(app.getHttpServer()).get('/tasks').expect(401).expect({
+      message: 'token_decode_unauthorized',
+      data: null,
+      errors: null,
+    });
+  });
+
+  it('/tasks (GET) - should not retrieve tasks with an valid token', () => {
+    return request(app.getHttpServer())
+      .get('/tasks')
+      .set('authorization', userToken + 1)
       .expect(401)
       .expect({
         message: 'token_decode_unauthorized',
