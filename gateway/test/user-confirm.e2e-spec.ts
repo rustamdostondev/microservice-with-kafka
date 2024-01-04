@@ -3,9 +3,10 @@ import * as request from 'supertest';
 import * as mongoose from 'mongoose';
 import { AppModule } from '../src/app.module';
 import { userSignupRequestSuccess } from './mocks/user-signup-request-success.mock';
+import { INestApplication } from '@nestjs/common';
 
 describe('Users Confirm Email (e2e)', () => {
-  let app;
+  let app: INestApplication;
   let userToken: string;
   let userConfirmation: any[];
 
