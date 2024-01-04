@@ -28,7 +28,7 @@ export class TokenService {
   }
 
   public deleteTokenForUserId(userId: string): Query<any, any> {
-    return this.tokenModel.deleteOne({
+    return this.tokenModel.deleteMany({
       user_id: userId,
     });
   }
