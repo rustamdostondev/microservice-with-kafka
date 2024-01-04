@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { userSignupRequestSuccess } from './mocks/user-signup-request-success.mock';
 import { AppModule } from '../src/app.module';
 import { INestApplication } from '@nestjs/common';
+import { userLoginRequestFailWrongEmail } from './mocks/user-login-request-fail.mock';
 
 describe('User Sign In (e2e)', () => {
   let app: INestApplication;
@@ -11,6 +12,10 @@ describe('User Sign In (e2e)', () => {
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_DSN);
     await mongoose.connection.dropDatabase();
+  });
+
+  afterAll(async () => {
+    await mongoose.connection.close();
   });
 
   beforeEach(async () => {
@@ -22,6 +27,10 @@ describe('User Sign In (e2e)', () => {
     await app.init();
   });
 
+  afterEach(async () => {
+    await app.close();
+  });
+
   it('/users/ (POST) - should create valid user', () => {
     return request(app.getHttpServer())
       .post('/users')
@@ -29,8 +38,15 @@ describe('User Sign In (e2e)', () => {
       .expect(201);
   });
 
-  afterAll(async () => {
-    await mongoose.connection.close();
-    await app.close();
+  it('/users/login (POST) - should not create a token for invalid email', () => {
+    return request(app.getHttpServer())
+      .post('/users/login')
+      .send(userLoginRequestFailWrongEmail)
+      .expect(401)
+      .expect({
+        message: 'user_search_by_credentials_not_found',
+        data: null,
+        error: null,
+      });
   });
 });
