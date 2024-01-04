@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpException,
   HttpStatus,
   Inject,
@@ -10,7 +11,12 @@ import {
   Req,
 } from '@nestjs/common';
 import { ClientKafka } from '@nestjs/microservices';
-import { ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiCreatedResponse,
+  ApiOkResponse,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateUserResponseDto } from './interfaces/user/dto/create-user-response.dto';
 import { CreateUserDto } from './interfaces/user/dto/create-user.dto';
 import { IServiceUserCreateResponse } from './interfaces/user/service-user-create-response.interface';
@@ -150,9 +156,11 @@ export class UserController {
 
   @Post('/logout')
   @Authorization(true)
-  @ApiCreatedResponse({
+  @ApiResponse({
+    status: 200,
     type: LogoutUserResponseDto,
   })
+  @HttpCode(200)
   public async logoutUser(
     @Req() request: IAuthorizedRequest,
   ): Promise<LogoutUserResponseDto> {

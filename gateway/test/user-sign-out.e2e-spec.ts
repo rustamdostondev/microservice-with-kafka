@@ -47,4 +47,28 @@ describe('User Sign Out (e2e)', () => {
         userToken = res.body.data.token;
       });
   });
+
+  it('/users/logout (POST) - should destroy token for user', () => {
+    return request(app.getHttpServer())
+      .post('/users/logout')
+      .set('authorization', userToken)
+      .expect(200)
+      .expect({
+        message: 'token_destroy_success',
+        data: null,
+        errors: null,
+      });
+  });
+
+  it('/users/ (GET) - should not retrieve user by a destroyed token', () => {
+    return request(app.getHttpServer())
+      .get('/users')
+      .set('authorization', userToken)
+      .expect(401)
+      .expect({
+        message: 'token_decode_unauthorized',
+        data: null,
+        errors: null,
+      });
+  });
 });
