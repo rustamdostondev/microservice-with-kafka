@@ -43,7 +43,6 @@ export class AppController {
         errors: null,
       };
     }
-    console.log(result);
 
     return result;
   }
