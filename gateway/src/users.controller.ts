@@ -126,7 +126,7 @@ export class UserController {
         {
           message: getUserResponse.message,
           data: null,
-          error: null,
+          errors: null,
         },
         HttpStatus.UNAUTHORIZED,
       );
